@@ -793,7 +793,7 @@ function confirmCash(id,total){
 }
 function closeModal(){document.getElementById('modal-receipt').classList.remove('open');}
 
-// ── COPY MODAL V.1.0-F ──
+// ── COPY MODAL V.1.0-J ──
 function showCopyModal(job){
   const d=new Date(job.time);
   const dateStr=d.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
@@ -865,7 +865,7 @@ function updateStats(){
   document.getElementById('s-income').textContent='฿'+S.totalIncome.toLocaleString();
 }
 
-// ── SOUND V.1.0-H ──
+// ── SOUND V.1.0-J ──
 function playNewJobSound(){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
@@ -918,7 +918,7 @@ function demoData(){
 
 load();demoData();recalc();renderBoard();
 
-// ── PWA INSTALL V.1.0-G ──
+// ── PWA INSTALL V.1.0-J ──
 let deferredPrompt=null;
 
 window.addEventListener('beforeinstallprompt',(e)=>{
