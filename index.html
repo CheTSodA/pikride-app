@@ -365,8 +365,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Sarabun',sans-seri
     <button class="btn btn-purple" onclick="saveProfile()">💾 บันทึกข้อมูล</button>
     <div style="height:8px"></div>
     <div class="card" style="padding:13px;text-align:center;background:var(--purple-bg);border-color:#c4b5fd">
-      <div style="font-size:.76rem;color:var(--purple);font-weight:700">🐱 PikRide V.1.0-B · ฟรี 100% ตลอดชีพ</div>
-      <div style="font-size:.68rem;color:var(--txt3);margin-top:2px">✨ ใหม่: ระบบค่ารอ 100 บาท/ชั่วโมง</div>
+      <div style="font-size:.76rem;color:var(--purple);font-weight:700">🐱 PikRide V.1.0-J · ฟรี 100% ตลอดชีพ</div>
+      <div style="font-size:.68rem;color:var(--txt3);margin-top:2px">✨ Google Sheet Sync แก้แล้ว · เสียงเตือน · ปุ่มรับงาน fixed</div>
     </div>
     <div style="height:12px"></div>
   </div>
@@ -653,6 +653,22 @@ function acceptJob(id){
   job.status='taken';job.takenBy=S.profile.name||'ฉัน';
   S.myJobs.unshift({...job});save();
   playAcceptSound();
+
+  // ส่งข้อมูลการรับงานเข้า Google Sheet
+  sendToSheet({
+    sheet: 'งานทั้งหมด',
+    timestamp: new Date().toLocaleString('th-TH'),
+    dispatcher: job.takenBy,
+    from: job.from,
+    to: job.to,
+    km: job.km,
+    price: job.price,
+    wait_price: job.waitPrice||0,
+    job_time: new Date(job.time).toLocaleString('th-TH'),
+    note: job.note||'-',
+    status: 'รับงานแล้ว — '+( S.profile.name||'ไม่ระบุ')
+  });
+
   toast('🎉 รับงานสำเร็จ! ไปดู "งานของฉัน" ได้เลย');
   renderBoard();
 }
@@ -742,11 +758,12 @@ function openReceipt(jobId,extraWait){
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwq-OBT2LFxAgclbnUKwMaWYVY0me-1hS4pgxGD00h5TjuCHgEJt-Qc_jmpQ9XRrm5N/exec';
 
 function sendToSheet(data){
-  fetch(SHEET_URL, {
-    method:'POST',
-    mode:'no-cors',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(data)
+  // ใช้ GET + URLSearchParams — ทำงานได้กับ no-cors
+  const params = new URLSearchParams();
+  Object.entries(data).forEach(([k,v]) => params.append(k, v ?? ''));
+  fetch(SHEET_URL + '?' + params.toString(), {
+    method: 'GET',
+    mode: 'no-cors'
   }).catch(()=>{});
 }
 
@@ -831,7 +848,17 @@ function saveProfile(){
   S.profile={name,plate};save();
   document.getElementById('p-name').textContent=name;
   document.getElementById('p-plate').textContent='ทะเบียนรถ: '+(plate||'—');
-  toast('✅ บันทึกแล้ว');
+
+  // ส่งข้อมูลคนขับเข้า Google Sheet
+  sendToSheet({
+    sheet: 'สมาชิก',
+    timestamp: new Date().toLocaleString('th-TH'),
+    name: name,
+    plate: plate||'-',
+    action: 'อัปเดตข้อมูล'
+  });
+
+  toast('✅ บันทึกข้อมูลแล้ว — ชื่อ: '+name);
 }
 function updateStats(){
   document.getElementById('s-jobs').textContent=S.completedJobs;
