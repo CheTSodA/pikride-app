@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="PikRide">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#5d3fbf">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235d3fbf'/><text y='.9em' font-size='72' x='50%25' text-anchor='middle'>🐱</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235d3fbf'/><text y='.9em' font-size='72' x='50%25' text-anchor='middle'>🐱</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -38,7 +40,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Sarabun',sans-seri
 .nav-btn.active{color:var(--purple)}
 .nav-btn .icon{font-size:1.25rem}
 
-.scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:11px;background:var(--bg)}
+.scroll{flex:1;overflow-y:auto;padding:14px;padding-bottom:80px;display:flex;flex-direction:column;gap:11px;background:var(--bg)}
 .scroll::-webkit-scrollbar{display:none}
 
 /* CARD */
@@ -62,9 +64,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Sarabun',sans-seri
 .job-price{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--orange)}
 .tags{display:flex;gap:5px;flex-wrap:wrap}
 .tag{font-size:.67rem;background:var(--elevated);color:var(--txt2);padding:3px 8px;border-radius:20px;font-weight:600}
-.accept-btn{width:100%;padding:14px 16px;background:linear-gradient(135deg,var(--orange),var(--orange-l));color:#fff;font-family:'Kanit',sans-serif;font-size:1.05rem;font-weight:700;border:none;border-radius:var(--rs);cursor:pointer;box-shadow:0 4px 14px rgba(217,95,0,.28);transition:all .15s;min-height:52px;letter-spacing:.3px}
+.accept-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--orange),var(--orange-l));color:#fff;font-family:'Kanit',sans-serif;font-size:1.1rem;font-weight:700;border:none;border-radius:var(--rs);cursor:pointer;box-shadow:0 4px 14px rgba(217,95,0,.28);transition:all .15s;min-height:54px;letter-spacing:.3px}
 .accept-btn:active{opacity:.82;transform:scale(.98)}
 .job-card-footer{padding:10px 0 12px;border-top:1px solid var(--border);margin-top:8px}
+/* FLOATING ACCEPT BTN */
+.float-accept{position:fixed;bottom:70px;left:0;right:0;padding:0 16px;z-index:200;display:none}
+.float-accept.show{display:block}
+.float-accept-btn{width:100%;padding:17px;background:linear-gradient(135deg,var(--orange),var(--orange-l));color:#fff;font-family:'Kanit',sans-serif;font-size:1.15rem;font-weight:700;border:none;border-radius:16px;cursor:pointer;box-shadow:0 6px 24px rgba(217,95,0,.4);letter-spacing:.3px;animation:bounceIn .3s ease}
+.float-accept-btn:active{opacity:.82;transform:scale(.98)}
+@keyframes bounceIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .taken-badge{width:100%;padding:10px;background:var(--elevated);color:var(--txt3);font-size:.82rem;text-align:center;border-radius:var(--rs);font-weight:600}
 .new-badge{position:absolute;top:10px;right:10px;background:var(--orange-l);color:#fff;font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px;animation:blink 1.4s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
@@ -194,6 +202,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Sarabun',sans-seri
     </div>
   </div>
   <div class="scroll" id="board-list"></div>
+  <!-- FLOATING ACCEPT BUTTON -->
+  <div class="float-accept" id="float-accept">
+    <button class="float-accept-btn" id="float-accept-btn" onclick="floatAccept()">✅ รับงานนี้เลย! ⚡</button>
+  </div>
   <nav class="bottomnav">
     <button class="nav-btn active" onclick="go('board')"><span class="icon">📋</span>บอร์ดงาน</button>
     <button class="nav-btn" onclick="go('create')"><span class="icon">➕</span>สร้างงาน</button>
@@ -529,6 +541,22 @@ function createJob(){
     status:'open',takenBy:null
   };
   S.jobs.unshift(job);save();
+  playNewJobSound();
+
+  // ส่งข้อมูลสร้างงานเข้า Google Sheet
+  sendToSheet({
+    sheet: 'งานทั้งหมด',
+    timestamp: new Date().toLocaleString('th-TH'),
+    dispatcher: S.profile.name||'ไม่ระบุ',
+    from: job.from,
+    to: job.to,
+    km: job.km,
+    price: job.price,
+    wait_price: job.waitPrice||0,
+    job_time: new Date(job.time).toLocaleString('th-TH'),
+    note: job.note||'-',
+    status: 'เปิดรับ'
+  });
   // reset
   document.getElementById('from').value='';
   document.getElementById('to').value='';
@@ -549,18 +577,19 @@ function renderBoard(){
   const sub=document.getElementById('board-sub');
   const open=S.jobs.filter(j=>j.status==='open');
   sub.textContent=open.length>0?`มีงานรอ ${open.length} งาน`:'ไม่มีงานในขณะนี้';
+  hideFloatBtn();
   if(S.jobs.length===0){
     list.innerHTML=`<div class="hero"><div class="hero-icon">🐱</div><div><div class="hero-title">ยินดีต้อนรับสู่ PikRide</div><div class="hero-sub">กด ➕ สร้างงาน เพื่อโยนงานเข้าบอร์ด</div></div></div><div class="empty"><div class="ei">📋</div><div class="et">ยังไม่มีงานในบอร์ด</div></div>`;
     return;
   }
   const myName=S.profile.name||'ฉัน';
-  list.innerHTML=`<div class="hero" style="margin-bottom:2px"><div class="hero-icon">📋</div><div><div class="hero-title">บอร์ดงาน</div><div class="hero-sub">ใครกดก่อน = ได้งาน 🔥</div></div></div>`+
+  list.innerHTML=`<div class="hero" style="margin-bottom:2px"><div class="hero-icon">📋</div><div><div class="hero-title">บอร์ดงาน</div><div class="hero-sub">แตะการ์ดงาน → กดรับด้านล่าง ⚡</div></div></div>`+
   S.jobs.map(job=>{
     const d=new Date(job.time);
     const ts=d.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
     const isOpen=job.status==='open';
     const hasWait=job.waitPrice>0;
-    return `<div class="job-card ${isOpen?'new':'taken'}">
+    return `<div class="job-card ${isOpen?'new':'taken'}" ${isOpen?`onclick="selectJob(${job.id})"`:''}  id="card-${job.id}">
       <div class="job-stripe ${isOpen?'':'done'}"></div>
       ${isOpen?'<div class="new-badge">ใหม่ 🔥</div>':''}
       <div class="job-route">
@@ -579,11 +608,43 @@ function renderBoard(){
         </div>
       </div>
       ${job.note?`<div style="margin-top:9px;font-size:.76rem;color:var(--txt2);background:var(--elevated);padding:8px 10px;border-radius:8px">📝 ${job.note}</div>`:''}
-      ${isOpen
-        ?`<div class="job-card-footer"><button class="accept-btn" onclick="acceptJob(${job.id})">✅ รับงานนี้เลย!</button></div>`
-        :`<div class="job-card-footer"><div class="taken-badge">❌ ${job.takenBy===myName?'คุณรับงานนี้แล้ว':'งานถูกรับไปแล้ว'}</div></div>`}
+      ${!isOpen?`<div class="job-card-footer"><div class="taken-badge">❌ ${job.takenBy===myName?'คุณรับงานนี้แล้ว':'งานถูกรับไปแล้ว'}</div></div>`:''}
     </div>`;
   }).join('');
+}
+
+let selectedJobId=null;
+
+function selectJob(id){
+  // deselect previous
+  document.querySelectorAll('.job-card').forEach(c=>{
+    c.style.border='1.5px solid var(--border)';
+    c.style.boxShadow='var(--sh)';
+  });
+  selectedJobId=id;
+  const card=document.getElementById('card-'+id);
+  if(card){
+    card.style.border='2.5px solid var(--orange-l)';
+    card.style.boxShadow='0 4px 20px rgba(249,115,22,.25)';
+    card.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  const job=S.jobs.find(j=>j.id===id);
+  if(job){
+    document.getElementById('float-accept-btn').textContent=`✅ รับงาน ฿${job.price} — ${job.from} → ${job.to}`;
+    document.getElementById('float-accept').classList.add('show');
+  }
+}
+
+function hideFloatBtn(){
+  selectedJobId=null;
+  const f=document.getElementById('float-accept');
+  if(f)f.classList.remove('show');
+}
+
+function floatAccept(){
+  if(!selectedJobId)return;
+  acceptJob(selectedJobId);
+  hideFloatBtn();
 }
 
 function acceptJob(id){
@@ -591,7 +652,8 @@ function acceptJob(id){
   if(!job||job.status!=='open'){toast('⚠️ งานถูกรับไปแล้ว');return;}
   job.status='taken';job.takenBy=S.profile.name||'ฉัน';
   S.myJobs.unshift({...job});save();
-  toast('🎉 รับงานสำเร็จ!');
+  playAcceptSound();
+  toast('🎉 รับงานสำเร็จ! ไปดู "งานของฉัน" ได้เลย');
   renderBoard();
 }
 
@@ -676,9 +738,38 @@ function openReceipt(jobId,extraWait){
   document.getElementById('cash-btn').onclick=()=>confirmCash(jobId,total);
   document.getElementById('modal-receipt').classList.add('open');
 }
+// ── GOOGLE SHEET SYNC ──
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwq-OBT2LFxAgcIbnUKwMaWYvYOme-1hS4pgxGDO0h5TjuCHgEJt-Qc_jmpQ9XRrm5N/exec';
+
+function sendToSheet(data){
+  fetch(SHEET_URL, {
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  }).catch(()=>{});
+}
+
 function confirmCash(id,total){
   const job=S.myJobs.find(j=>j.id===id);if(job)job.status='done';
   S.totalIncome+=total;S.completedJobs+=1;save();
+
+  // ส่งข้อมูลปิดงานเข้า Google Sheet
+  const now=new Date();
+  sendToSheet({
+    sheet: 'งานที่ปิดแล้ว',
+    timestamp: now.toLocaleString('th-TH'),
+    driver: S.profile.name||'ไม่ระบุ',
+    plate: S.profile.plate||'-',
+    from: job.from,
+    to: job.to,
+    km: job.km,
+    ride_price: job.ridePrice||job.price,
+    wait_price: (job.waitPrice||0),
+    total: total,
+    job_time: new Date(job.time).toLocaleString('th-TH')
+  });
+
   closeModal();
   toast('💰 บันทึก ฿'+total+' แล้ว → PikCash');
   renderMyJobs();updateStats();
@@ -745,6 +836,42 @@ function saveProfile(){
 function updateStats(){
   document.getElementById('s-jobs').textContent=S.completedJobs;
   document.getElementById('s-income').textContent='฿'+S.totalIncome.toLocaleString();
+}
+
+// ── SOUND V.1.0-H ──
+function playNewJobSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const playBeep=(freq,start,dur)=>{
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=freq;
+      o.type='sine';
+      g.gain.setValueAtTime(0,ctx.currentTime+start);
+      g.gain.linearRampToValueAtTime(0.4,ctx.currentTime+start+0.01);
+      g.gain.linearRampToValueAtTime(0,ctx.currentTime+start+dur);
+      o.start(ctx.currentTime+start);
+      o.stop(ctx.currentTime+start+dur+0.05);
+    };
+    // เสียง "มีงานใหม่" — 3 tone ขึ้น
+    playBeep(440,0,.15);
+    playBeep(550,.18,.15);
+    playBeep(660,.36,.25);
+  }catch(e){}
+}
+
+function playAcceptSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.value=880;o.type='sine';
+    g.gain.setValueAtTime(0.5,ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0,ctx.currentTime+0.3);
+    o.start(ctx.currentTime);o.stop(ctx.currentTime+0.35);
+  }catch(e){}
 }
 
 function toast(msg){
