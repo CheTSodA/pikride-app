@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PikRide 🐱</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PikRide">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#5d3fbf">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f2f5fc;--card:#fff;--elevated:#eef1f9;--border:#e0e5f2;
+  --purple:#5d3fbf;--purple-l:#7c5ce0;--purple-bg:#ede9ff;
+  --orange:#d95f00;--orange-l:#f97316;--orange-bg:#fff3e8;
+  --green:#15803d;--green-l:#22c55e;--green-bg:#edfff5;
+  --red:#dc2626;--blue:#2563eb;
+  --txt:#181824;--txt2:#525775;--txt3:#9ba3c0;
+  --sh:0 2px 10px rgba(0,0,0,.06);--sh-md:0 6px 24px rgba(0,0,0,.1);
+  --r:16px;--rs:10px;
+}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--txt);font-size:15px}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:15px 20px 13px;background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;box-shadow:var(--sh)}
+.topbar-title{font-family:'Kanit',sans-serif;font-size:1.18rem;font-weight:700;color:var(--txt)}
+.topbar-sub{font-size:.73rem;color:var(--txt2);margin-top:1px}
+.pik-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--purple),var(--purple-l));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 14px rgba(93,63,191,.28)}
+
+/* BOTTOM NAV */
+.bottomnav{display:flex;background:#fff;border-top:1px solid var(--border);flex-shrink:0;box-shadow:0 -2px 10px rgba(0,0,0,.04)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 4px;gap:3px;cursor:pointer;border:none;background:none;color:var(--txt3);font-family:'Sarabun',sans-serif;font-size:.68rem;font-weight:700;transition:color .2s}
+.nav-btn.active{color:var(--purple)}
+.nav-btn .icon{font-size:1.25rem}
+
+.scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:11px;background:var(--bg)}
+.scroll::-webkit-scrollbar{display:none}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+
+/* JOB CARD */
+.job-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:12px 12px 0;position:relative;overflow:hidden;box-shadow:var(--sh);transition:box-shadow .2s}
+.job-card.new{border-color:var(--orange-l);box-shadow:0 4px 18px rgba(249,115,22,.13)}
+.job-card.taken{opacity:.5}
+.job-stripe{position:absolute;top:0;left:0;width:4px;height:100%;background:var(--orange-l)}
+.job-stripe.done{background:var(--txt3)}
+.job-route{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.rdots{display:flex;flex-direction:column;align-items:center;padding-top:3px}
+.dot-a{width:9px;height:9px;border-radius:50%;background:var(--green-l);flex-shrink:0}
+.dot-ln{width:2px;flex:1;min-height:14px;background:var(--border)}
+.dot-b{width:9px;height:9px;border-radius:2px;background:var(--orange-l);flex-shrink:0}
+.rtext{flex:1;display:flex;flex-direction:column;gap:5px}
+.rpoint{font-size:.78rem;font-weight:700;color:var(--txt);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.rpoint span{font-size:.63rem;font-weight:500;color:var(--txt3);display:block}
+.job-meta{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border)}
+.job-price{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--orange)}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:.67rem;background:var(--elevated);color:var(--txt2);padding:3px 8px;border-radius:20px;font-weight:600}
+.accept-btn{width:100%;padding:14px 16px;background:linear-gradient(135deg,var(--orange),var(--orange-l));color:#fff;font-family:'Kanit',sans-serif;font-size:1.05rem;font-weight:700;border:none;border-radius:var(--rs);cursor:pointer;box-shadow:0 4px 14px rgba(217,95,0,.28);transition:all .15s;min-height:52px;letter-spacing:.3px}
+.accept-btn:active{opacity:.82;transform:scale(.98)}
+.job-card-footer{padding:10px 0 12px;border-top:1px solid var(--border);margin-top:8px}
+.taken-badge{width:100%;padding:10px;background:var(--elevated);color:var(--txt3);font-size:.82rem;text-align:center;border-radius:var(--rs);font-weight:600}
+.new-badge{position:absolute;top:10px;right:10px;background:var(--orange-l);color:#fff;font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px;animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* BUTTONS */
+.btn{width:100%;padding:15px;border:none;border-radius:var(--rs);font-family:'Kanit',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .15s;letter-spacing:.25px}
+.btn:active{opacity:.8}
+.btn-orange{background:linear-gradient(135deg,var(--orange),var(--orange-l));color:#fff;box-shadow:0 4px 14px rgba(217,95,0,.22)}
+.btn-green{background:linear-gradient(135deg,var(--green),var(--green-l));color:#fff;box-shadow:0 4px 14px rgba(21,128,61,.22)}
+.btn-purple{background:linear-gradient(135deg,var(--purple),var(--purple-l));color:#fff;box-shadow:0 4px 14px rgba(93,63,191,.22)}
+.btn-outline{background:#fff;border:1.5px solid var(--border);color:var(--txt2)}
+
+/* FORM */
+.flabel{font-size:.8rem;font-weight:700;color:var(--txt2);margin-bottom:6px;display:block}
+.finput{background:var(--elevated);border:1.5px solid var(--border);border-radius:var(--rs);padding:13px 14px;color:var(--txt);font-family:'Sarabun',sans-serif;font-size:.93rem;outline:none;transition:border-color .2s;width:100%}
+.finput:focus{border-color:var(--purple);background:#fff}
+.finput::placeholder{color:var(--txt3)}
+.fgroup{display:flex;flex-direction:column;margin-bottom:14px}
+
+/* PRICE BOX */
+.pricebox{background:linear-gradient(135deg,#fff8f0,#fffaf5);border:1.5px solid #fcd9b0;border-radius:var(--r);padding:16px;margin-bottom:14px}
+.prow{display:flex;justify-content:space-between;align-items:center;padding:5px 0}
+.prow.total{border-top:1.5px dashed #fcd9b0;margin-top:10px;padding-top:13px}
+.plabel{font-size:.83rem;color:var(--txt2)}
+.pval{font-size:.9rem;font-weight:700;color:var(--txt)}
+.pval.big{font-family:'Kanit',sans-serif;font-size:1.65rem;color:var(--orange);font-weight:700}
+.slider-wrap{margin:9px 0 3px}
+.slider-wrap input[type=range]{width:100%;accent-color:var(--orange);cursor:pointer}
+
+/* WAIT BOX — NEW in V.1.0-B */
+.waitbox{background:linear-gradient(135deg,#f0f8ff,#f5fbff);border:1.5px solid #bdd7f8;border-radius:var(--r);padding:16px;margin-bottom:14px}
+.wait-title{font-family:'Kanit',sans-serif;font-size:.82rem;font-weight:700;color:var(--blue);margin-bottom:12px}
+.wait-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.wait-minus,.wait-plus{width:40px;height:40px;border:1.5px solid var(--border);border-radius:10px;background:#fff;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--txt);flex-shrink:0;transition:all .15s}
+.wait-minus:active,.wait-plus:active{background:var(--elevated)}
+.wait-display{flex:1;text-align:center}
+.wait-num{font-family:'Kanit',sans-serif;font-size:1.5rem;font-weight:700;color:var(--blue)}
+.wait-lbl{font-size:.7rem;color:var(--txt2);margin-top:1px}
+.wait-total{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid #bdd7f8}
+.wait-total-lbl{font-size:.82rem;color:var(--txt2)}
+.wait-total-val{font-family:'Kanit',sans-serif;font-size:1rem;font-weight:700;color:var(--blue)}
+
+/* PRESET */
+.presets{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.preset{flex:1;min-width:68px;padding:11px 6px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);color:var(--txt2);font-family:'Sarabun',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;box-shadow:var(--sh)}
+.preset.on{border-color:var(--orange-l);color:var(--orange);background:var(--orange-bg)}
+
+/* RECEIPT */
+.receipt{background:#fff;border-radius:var(--r);padding:20px;border:1.5px solid var(--border);box-shadow:var(--sh)}
+.rh{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px dashed var(--border)}
+.rh-title{font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--txt)}
+.rh-sub{font-size:.73rem;color:var(--txt2);margin-top:3px}
+.rrow{display:flex;justify-content:space-between;padding:7px 0;font-size:.87rem;border-bottom:1px solid var(--elevated)}
+.rrow .rl{color:var(--txt2)}
+.rrow .rv{color:var(--txt);font-weight:700}
+.rtotal{display:flex;justify-content:space-between;align-items:center;padding-top:14px;margin-top:4px}
+.rtotal .rl{font-weight:700;color:var(--txt);font-size:1rem}
+.rtotal .rv{font-family:'Kanit',sans-serif;font-size:1.9rem;color:var(--green);font-weight:700}
+
+/* PROFILE */
+.avatar{width:76px;height:76px;background:linear-gradient(135deg,var(--purple),var(--purple-l));border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin:0 auto 12px;box-shadow:0 6px 20px rgba(93,63,191,.22)}
+.stat-row{display:flex;gap:10px;margin-bottom:12px}
+.stat-box{flex:1;background:#fff;border:1px solid var(--border);border-radius:var(--rs);padding:14px;text-align:center;box-shadow:var(--sh)}
+.stat-num{font-family:'Kanit',sans-serif;font-size:1.5rem;font-weight:700;color:var(--orange)}
+.stat-lbl{font-size:.7rem;color:var(--txt2);margin-top:3px;font-weight:600}
+
+/* ACTIVE BANNER */
+.active-banner{background:var(--green-bg);border:1.5px solid #86efac;border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.adot{width:10px;height:10px;border-radius:50%;background:var(--green-l);animation:blink 1s infinite;flex-shrink:0}
+
+/* SECTION LABEL */
+.slabel{font-size:.73rem;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;padding-left:2px}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--purple),var(--purple-l));border-radius:var(--r);padding:15px 18px;color:#fff;display:flex;align-items:center;gap:13px;box-shadow:0 6px 20px rgba(93,63,191,.22)}
+.hero-icon{font-size:2rem}
+.hero-title{font-family:'Kanit',sans-serif;font-size:1rem;font-weight:700}
+.hero-sub{font-size:.73rem;opacity:.85;margin-top:2px}
+
+/* EMPTY */
+.empty{text-align:center;padding:46px 20px;color:var(--txt3)}
+.empty .ei{font-size:2.8rem;margin-bottom:13px}
+.empty .et{font-size:.86rem;line-height:1.6}
+
+/* TOAST */
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:var(--txt);color:#fff;padding:12px 22px;border-radius:28px;font-size:.84rem;font-weight:700;z-index:9999;white-space:nowrap;box-shadow:var(--sh-md);animation:tin .3s ease}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(24,24,36,.5);z-index:500;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:24px 24px 0 0;padding:22px 20px 34px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.14)}
+.mhandle{width:38px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+.mtitle{font-family:'Kanit',sans-serif;font-size:1.12rem;font-weight:700;margin-bottom:18px;text-align:center;color:var(--txt)}
+
+/* NEW: Wait time in receipt highlight */
+.wait-highlight{background:linear-gradient(135deg,#eff6ff,#f0f8ff);border:1px solid #bdd7f8;border-radius:8px;padding:8px 12px;margin:4px 0}
+</style>
+</head>
+<body>
+
+<!-- BOARD -->
+<div class="screen active" id="s-board">
+  <div class="topbar">
+    <div><div class="topbar-title">🐱 PikRide</div><div class="topbar-sub" id="board-sub">กำลังโหลด...</div></div>
+    <div class="pik-logo">🐱</div>
+  </div>
+  <!-- INSTALL BANNER -->
+  <div id="install-banner" style="display:none;background:linear-gradient(135deg,#5d3fbf,#7c5ce0);padding:10px 16px;flex-shrink:0;flex-direction:row;align-items:center;gap:10px">
+    <div style="flex:1">
+      <div style="font-family:'Kanit',sans-serif;font-size:.85rem;font-weight:700;color:#fff">📲 บันทึกลงหน้าจอมือถือ</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.8);margin-top:2px">เปิดแอปได้เลยโดยไม่ต้องเปิด browser</div>
+    </div>
+    <button onclick="installApp()" style="background:#fff;color:#5d3fbf;border:none;border-radius:10px;padding:8px 14px;font-family:'Kanit',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;flex-shrink:0">บันทึก</button>
+    <button onclick="dismissBanner()" style="background:none;border:none;color:rgba(255,255,255,.7);font-size:1.2rem;cursor:pointer;padding:4px;flex-shrink:0">✕</button>
+  </div>
+  <!-- iOS BANNER -->
+  <div id="ios-banner" style="display:none;background:linear-gradient(135deg,#5d3fbf,#7c5ce0);padding:10px 16px;flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="font-family:'Kanit',sans-serif;font-size:.85rem;font-weight:700;color:#fff">📲 บันทึกลงหน้าจอ iPhone</div>
+      <button onclick="dismissIOSBanner()" style="background:none;border:none;color:rgba(255,255,255,.7);font-size:1.2rem;cursor:pointer;padding:0">✕</button>
+    </div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.9);line-height:1.6">
+      1. กดปุ่ม <strong style="background:rgba(255,255,255,.2);padding:1px 6px;border-radius:4px">⬆️ Share</strong> ที่ด้านล่าง browser<br>
+      2. เลือก <strong style="background:rgba(255,255,255,.2);padding:1px 6px;border-radius:4px">เพิ่มในหน้าจอโฮม</strong><br>
+      3. กด <strong style="background:rgba(255,255,255,.2);padding:1px 6px;border-radius:4px">เพิ่ม</strong> มุมขวาบน ✅
+    </div>
+  </div>
+  <div class="scroll" id="board-list"></div>
+  <nav class="bottomnav">
+    <button class="nav-btn active" onclick="go('board')"><span class="icon">📋</span>บอร์ดงาน</button>
+    <button class="nav-btn" onclick="go('create')"><span class="icon">➕</span>สร้างงาน</button>
+    <button class="nav-btn" onclick="go('myjobs')"><span class="icon">🚗</span>งานของฉัน</button>
+    <button class="nav-btn" onclick="go('profile')"><span class="icon">👤</span>โปรไฟล์</button>
+  </nav>
+</div>
+
+<!-- CREATE -->
+<div class="screen" id="s-create">
+  <div class="topbar">
+    <div><div class="topbar-title">➕ สร้างงาน</div><div class="topbar-sub">Quick Quote อัตโนมัติ</div></div>
+    <div class="pik-logo">🐱</div>
+  </div>
+  <div class="scroll">
+    <div class="slabel">จุดรับ — จุดส่ง</div>
+    <div class="card">
+      <div class="fgroup">
+        <label class="flabel">📍 จุดรับผู้โดยสาร</label>
+        <input class="finput" id="from" placeholder="เช่น บิ๊กซีสุพรรณบุรี" />
+      </div>
+      <div class="fgroup" style="margin-bottom:0">
+        <label class="flabel">🏁 จุดส่ง</label>
+        <input class="finput" id="to" placeholder="เช่น โรงพยาบาลเจ้าพระยา" />
+      </div>
+    </div>
+
+    <div class="slabel">ระยะทาง (กม.)</div>
+    <div class="card">
+      <div class="presets">
+        <button class="preset" onclick="setKm(5,this)">5 กม.</button>
+        <button class="preset" onclick="setKm(10,this)">10 กม.</button>
+        <button class="preset" onclick="setKm(20,this)">20 กม.</button>
+        <button class="preset" onclick="setKm(50,this)">50 กม.</button>
+        <button class="preset" onclick="setKm(100,this)">100 กม.</button>
+      </div>
+      <div class="slider-wrap">
+        <input type="range" id="km-slider" min="1" max="300" value="10" oninput="updateKm(this.value)">
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">
+        <span style="font-size:.75rem;color:var(--txt2)">ลากเพื่อปรับระยะทาง</span>
+        <span id="km-disp" style="font-family:'Kanit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--orange)">10 กม.</span>
+      </div>
+    </div>
+
+    <div class="slabel">ค่าโดยสาร</div>
+    <div class="pricebox">
+      <div class="prow"><span class="plabel">🚗 ค่ารถ (10 บาท/กม.)</span><span class="pval" id="base-p">฿100</span></div>
+      <div class="prow"><span class="plabel">⚙️ ปรับราคา</span><span class="pval" id="adj-disp">+฿0</span></div>
+      <div class="prow total"><span class="plabel" style="font-weight:700;color:var(--txt)">💰 ยอดรวม</span><span class="pval big" id="total-p">฿100</span></div>
+      <div class="slider-wrap">
+        <input type="range" id="adj-slider" min="-200" max="500" value="0" step="10" oninput="updateAdj(this.value)">
+      </div>
+      <div style="font-size:.7rem;color:var(--txt3);text-align:center">← ลดราคา &nbsp; เพิ่มราคา →</div>
+    </div>
+
+    <!-- NEW V.1.0-B: ค่ารอ -->
+    <div class="slabel">⏳ ค่ารอ (100 บาท/ชั่วโมง)</div>
+    <div class="waitbox">
+      <div class="wait-title">🕐 บวกค่ารอเพิ่มได้เลย</div>
+      <div class="wait-row">
+        <button class="wait-minus" onclick="changeWait(-1)">−</button>
+        <div class="wait-display">
+          <div class="wait-num" id="wait-hrs">0</div>
+          <div class="wait-lbl">ชั่วโมง</div>
+        </div>
+        <button class="wait-plus" onclick="changeWait(1)">+</button>
+        <button class="wait-minus" onclick="changeWaitMin(-30)" style="font-size:.7rem;width:50px">−30น.</button>
+        <div class="wait-display">
+          <div class="wait-num" id="wait-mins">0</div>
+          <div class="wait-lbl">นาที</div>
+        </div>
+        <button class="wait-plus" onclick="changeWaitMin(30)" style="font-size:.7rem;width:50px">+30น.</button>
+      </div>
+      <div class="wait-total">
+        <span class="wait-total-lbl">💵 ค่ารอรวม</span>
+        <span class="wait-total-val" id="wait-cost">฿0</span>
+      </div>
+    </div>
+
+    <div class="slabel">รายละเอียด</div>
+    <div class="card">
+      <div class="fgroup">
+        <label class="flabel">📅 วัน/เวลา</label>
+        <input class="finput" id="time-in" type="datetime-local" />
+      </div>
+      <div class="fgroup" style="margin-bottom:0">
+        <label class="flabel">📝 หมายเหตุ</label>
+        <input class="finput" id="note-in" placeholder="เช่น ผู้โดยสาร 2 คน มีกระเป๋าใบใหญ่" />
+      </div>
+    </div>
+
+    <!-- GRAND TOTAL -->
+    <div class="card" style="background:linear-gradient(135deg,var(--orange-bg),#fff);border-color:#fcd9b0">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:.9rem;font-weight:700;color:var(--txt2)">💰 ยอดรวมทั้งหมด</span>
+        <span id="grand-total" style="font-family:'Kanit',sans-serif;font-size:1.8rem;font-weight:700;color:var(--orange)">฿100</span>
+      </div>
+      <div style="font-size:.72rem;color:var(--txt3);margin-top:4px">ค่ารถ + ค่ารอ</div>
+    </div>
+
+    <button class="btn btn-orange" onclick="createJob()">🚀 โยนงานเข้าบอร์ด</button>
+    <div style="height:12px"></div>
+  </div>
+  <nav class="bottomnav">
+    <button class="nav-btn" onclick="go('board')"><span class="icon">📋</span>บอร์ดงาน</button>
+    <button class="nav-btn active" onclick="go('create')"><span class="icon">➕</span>สร้างงาน</button>
+    <button class="nav-btn" onclick="go('myjobs')"><span class="icon">🚗</span>งานของฉัน</button>
+    <button class="nav-btn" onclick="go('profile')"><span class="icon">👤</span>โปรไฟล์</button>
+  </nav>
+</div>
+
+<!-- MY JOBS -->
+<div class="screen" id="s-myjobs">
+  <div class="topbar">
+    <div><div class="topbar-title">🚗 งานของฉัน</div><div class="topbar-sub" id="myjobs-sub">ไม่มีงาน</div></div>
+    <div class="pik-logo">🐱</div>
+  </div>
+  <div class="scroll" id="myjobs-list">
+    <div class="empty"><div class="ei">🚗</div><div class="et">ยังไม่มีงานที่รับ<br>ไปดูบอร์ดงานได้เลยครับ</div></div>
+  </div>
+  <nav class="bottomnav">
+    <button class="nav-btn" onclick="go('board')"><span class="icon">📋</span>บอร์ดงาน</button>
+    <button class="nav-btn" onclick="go('create')"><span class="icon">➕</span>สร้างงาน</button>
+    <button class="nav-btn active" onclick="go('myjobs')"><span class="icon">🚗</span>งานของฉัน</button>
+    <button class="nav-btn" onclick="go('profile')"><span class="icon">👤</span>โปรไฟล์</button>
+  </nav>
+</div>
+
+<!-- PROFILE -->
+<div class="screen" id="s-profile">
+  <div class="topbar">
+    <div><div class="topbar-title">👤 โปรไฟล์</div><div class="topbar-sub">ข้อมูลคนขับ</div></div>
+    <div class="pik-logo">🐱</div>
+  </div>
+  <div class="scroll">
+    <div class="card" style="text-align:center;padding:26px 16px">
+      <div class="avatar">🧑</div>
+      <div id="p-name" style="font-family:'Kanit',sans-serif;font-size:1.3rem;font-weight:700">ชื่อของคุณ</div>
+      <div id="p-plate" style="font-size:.84rem;color:var(--txt2);margin-top:5px">ทะเบียนรถ: —</div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="s-jobs">0</div><div class="stat-lbl">งานที่ทำ</div></div>
+      <div class="stat-box"><div class="stat-num" id="s-income">฿0</div><div class="stat-lbl">รายได้รวม</div></div>
+    </div>
+    <div class="slabel">แก้ไขข้อมูล</div>
+    <div class="card">
+      <div class="fgroup">
+        <label class="flabel">👤 ชื่อ-นามสกุล</label>
+        <input class="finput" id="name-in" placeholder="ชื่อของคุณ" />
+      </div>
+      <div class="fgroup" style="margin-bottom:0">
+        <label class="flabel">🚗 ทะเบียนรถ</label>
+        <input class="finput" id="plate-in" placeholder="เช่น กข-1234 สุพรรณบุรี" />
+      </div>
+    </div>
+    <button class="btn btn-purple" onclick="saveProfile()">💾 บันทึกข้อมูล</button>
+    <div style="height:8px"></div>
+    <div class="card" style="padding:13px;text-align:center;background:var(--purple-bg);border-color:#c4b5fd">
+      <div style="font-size:.76rem;color:var(--purple);font-weight:700">🐱 PikRide V.1.0-B · ฟรี 100% ตลอดชีพ</div>
+      <div style="font-size:.68rem;color:var(--txt3);margin-top:2px">✨ ใหม่: ระบบค่ารอ 100 บาท/ชั่วโมง</div>
+    </div>
+    <div style="height:12px"></div>
+  </div>
+  <nav class="bottomnav">
+    <button class="nav-btn" onclick="go('board')"><span class="icon">📋</span>บอร์ดงาน</button>
+    <button class="nav-btn" onclick="go('create')"><span class="icon">➕</span>สร้างงาน</button>
+    <button class="nav-btn" onclick="go('myjobs')"><span class="icon">🚗</span>งานของฉัน</button>
+    <button class="nav-btn active" onclick="go('profile')"><span class="icon">👤</span>โปรไฟล์</button>
+  </nav>
+</div>
+
+<!-- MODAL RECEIPT -->
+<div class="overlay" id="modal-receipt" onclick="closeModal()">
+  <div class="modal" onclick="e=>e.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="mtitle">🧾 ปิดงาน — ยื่นให้ลูกค้าดู</div>
+    <div class="receipt" id="receipt-body"></div>
+    <div style="height:14px"></div>
+    <button class="btn btn-green" id="cash-btn">✅ ได้รับเงินสดแล้ว</button>
+    <div style="height:9px"></div>
+    <button class="btn btn-outline" onclick="closeModal()">ยังไม่ปิดงาน</button>
+  </div>
+</div>
+
+<!-- MODAL COPY — ใหม่ V.1.0-F -->
+<div class="overlay" id="modal-copy">
+  <div class="modal" onclick="e=>e.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="mtitle">✅ โยนงานเข้าบอร์ดแล้ว!</div>
+
+    <!-- ข้อความสำเร็จรูป -->
+    <div style="background:var(--elevated);border-radius:var(--r);padding:16px;margin-bottom:14px;border:1.5px solid var(--border)">
+      <div style="font-size:.72rem;font-weight:700;color:var(--txt2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">📋 ข้อความยืนยัน — ก๊อปปี้ส่ง LINE ได้เลย</div>
+      <div id="copy-text" style="font-size:.88rem;color:var(--txt);line-height:1.8;white-space:pre-wrap;word-break:break-word"></div>
+    </div>
+
+    <button class="btn btn-green" onclick="copyToClipboard()" id="copy-btn">📋 ก๊อปปี้ข้อความ</button>
+    <div style="height:9px"></div>
+    <button class="btn btn-orange" onclick="closeCopyModal()">📋 ไปดูบอร์ดงาน</button>
+  </div>
+</div>
+
+<!-- MODAL WAIT (add wait time when closing job) -->
+<div class="overlay" id="modal-wait" onclick="closeWaitModal()">
+  <div class="modal" onclick="e=>e.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="mtitle">⏳ บวกค่ารอ (ถ้ามี)</div>
+    <div class="waitbox" style="margin-bottom:14px">
+      <div class="wait-title">🕐 รอลูกค้านานแค่ไหน?</div>
+      <div class="wait-row">
+        <button class="wait-minus" onclick="changeCloseWait(-1)">−</button>
+        <div class="wait-display">
+          <div class="wait-num" id="cw-hrs">0</div>
+          <div class="wait-lbl">ชั่วโมง</div>
+        </div>
+        <button class="wait-plus" onclick="changeCloseWait(1)">+</button>
+        <button class="wait-minus" onclick="changeCloseWaitMin(-30)" style="font-size:.7rem;width:50px">−30น.</button>
+        <div class="wait-display">
+          <div class="wait-num" id="cw-mins">0</div>
+          <div class="wait-lbl">นาที</div>
+        </div>
+        <button class="wait-plus" onclick="changeCloseWaitMin(30)" style="font-size:.7rem;width:50px">+30น.</button>
+      </div>
+      <div class="wait-total">
+        <span class="wait-total-lbl">💵 ค่ารอเพิ่ม</span>
+        <span class="wait-total-val" id="cw-cost">฿0</span>
+      </div>
+    </div>
+    <button class="btn btn-orange" onclick="proceedReceipt()">📋 ดูใบสรุปยอด</button>
+    <div style="height:9px"></div>
+    <button class="btn btn-outline" onclick="proceedReceiptNoWait()">ไม่มีค่ารอ — ดูยอดได้เลย</button>
+  </div>
+</div>
+
+<script>
+let S={
+  jobs:[],myJobs:[],totalIncome:0,completedJobs:0,
+  km:10,adj:0,waitHrs:0,waitMins:0,
+  closeWaitHrs:0,closeWaitMins:0,
+  profile:{name:'',plate:''},
+  activeJob:null
+};
+
+function load(){
+  try{const s=localStorage.getItem('pikride_v1b');if(s)S={...S,...JSON.parse(s)};}catch(e){}
+  const now=new Date();now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+  const el=document.getElementById('time-in');if(el)el.value=now.toISOString().slice(0,16);
+  if(S.profile.name){
+    document.getElementById('name-in').value=S.profile.name;
+    document.getElementById('plate-in').value=S.profile.plate;
+    document.getElementById('p-name').textContent=S.profile.name;
+    document.getElementById('p-plate').textContent='ทะเบียนรถ: '+(S.profile.plate||'—');
+  }
+  updateStats();
+}
+function save(){try{localStorage.setItem('pikride_v1b',JSON.stringify(S));}catch(e){}}
+
+// NAV
+const SCS={board:'s-board',create:'s-create',myjobs:'s-myjobs',profile:'s-profile'};
+function go(n){
+  Object.values(SCS).forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById(SCS[n]).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(n==='board')renderBoard();
+  if(n==='myjobs')renderMyJobs();
+  if(n==='profile')updateStats();
+}
+
+// KM
+function setKm(km,btn){
+  S.km=km;
+  document.getElementById('km-slider').value=km;
+  document.getElementById('km-disp').textContent=km+' กม.';
+  document.querySelectorAll('.preset').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  recalc();
+}
+function updateKm(v){
+  S.km=parseInt(v);
+  document.getElementById('km-disp').textContent=v+' กม.';
+  document.querySelectorAll('.preset').forEach(b=>b.classList.remove('on'));
+  recalc();
+}
+function updateAdj(v){
+  S.adj=parseInt(v);
+  document.getElementById('adj-disp').textContent=(v>=0?'+':'')+'฿'+v;
+  recalc();
+}
+
+// WAIT (create form)
+function changeWait(d){S.waitHrs=Math.max(0,S.waitHrs+d);updateWaitUI();}
+function changeWaitMin(d){
+  S.waitMins=S.waitMins+d;
+  if(S.waitMins>=60){S.waitMins-=60;S.waitHrs++;}
+  if(S.waitMins<0){S.waitMins=0;}
+  updateWaitUI();
+}
+function updateWaitUI(){
+  document.getElementById('wait-hrs').textContent=S.waitHrs;
+  document.getElementById('wait-mins').textContent=S.waitMins;
+  const cost=calcWaitCost(S.waitHrs,S.waitMins);
+  document.getElementById('wait-cost').textContent='฿'+cost;
+  recalc();
+}
+function calcWaitCost(h,m){return Math.round((h*60+m)/60*100);}
+
+function recalc(){
+  const base=S.km*10;
+  const ride=Math.max(0,base+S.adj);
+  const wait=calcWaitCost(S.waitHrs,S.waitMins);
+  const grand=ride+wait;
+  document.getElementById('base-p').textContent='฿'+base;
+  document.getElementById('total-p').textContent='฿'+ride;
+  document.getElementById('grand-total').textContent='฿'+grand;
+}
+
+// CREATE JOB
+function createJob(){
+  const from=document.getElementById('from').value.trim();
+  const to=document.getElementById('to').value.trim();
+  if(!from||!to){toast('⚠️ กรุณากรอกจุดรับและจุดส่ง');return;}
+  const base=S.km*10;
+  const ride=Math.max(0,base+S.adj);
+  const wait=calcWaitCost(S.waitHrs,S.waitMins);
+  const job={
+    id:Date.now(),from,to,km:S.km,
+    ridePrice:ride,waitPrice:wait,
+    price:ride+wait,
+    waitHrs:S.waitHrs,waitMins:S.waitMins,
+    time:document.getElementById('time-in').value||new Date().toISOString(),
+    note:document.getElementById('note-in').value.trim(),
+    status:'open',takenBy:null
+  };
+  S.jobs.unshift(job);save();
+  // reset
+  document.getElementById('from').value='';
+  document.getElementById('to').value='';
+  document.getElementById('note-in').value='';
+  document.getElementById('km-slider').value=10;
+  document.getElementById('adj-slider').value=0;
+  S.km=10;S.adj=0;S.waitHrs=0;S.waitMins=0;
+  recalc();updateWaitUI();
+  document.getElementById('km-disp').textContent='10 กม.';
+  document.getElementById('adj-disp').textContent='+฿0';
+  document.querySelectorAll('.preset').forEach(b=>b.classList.remove('on'));
+  showCopyModal(job);
+}
+
+// BOARD
+function renderBoard(){
+  const list=document.getElementById('board-list');
+  const sub=document.getElementById('board-sub');
+  const open=S.jobs.filter(j=>j.status==='open');
+  sub.textContent=open.length>0?`มีงานรอ ${open.length} งาน`:'ไม่มีงานในขณะนี้';
+  if(S.jobs.length===0){
+    list.innerHTML=`<div class="hero"><div class="hero-icon">🐱</div><div><div class="hero-title">ยินดีต้อนรับสู่ PikRide</div><div class="hero-sub">กด ➕ สร้างงาน เพื่อโยนงานเข้าบอร์ด</div></div></div><div class="empty"><div class="ei">📋</div><div class="et">ยังไม่มีงานในบอร์ด</div></div>`;
+    return;
+  }
+  const myName=S.profile.name||'ฉัน';
+  list.innerHTML=`<div class="hero" style="margin-bottom:2px"><div class="hero-icon">📋</div><div><div class="hero-title">บอร์ดงาน</div><div class="hero-sub">ใครกดก่อน = ได้งาน 🔥</div></div></div>`+
+  S.jobs.map(job=>{
+    const d=new Date(job.time);
+    const ts=d.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const isOpen=job.status==='open';
+    const hasWait=job.waitPrice>0;
+    return `<div class="job-card ${isOpen?'new':'taken'}">
+      <div class="job-stripe ${isOpen?'':'done'}"></div>
+      ${isOpen?'<div class="new-badge">ใหม่ 🔥</div>':''}
+      <div class="job-route">
+        <div class="rdots"><div class="dot-a"></div><div class="dot-ln"></div><div class="dot-b"></div></div>
+        <div class="rtext">
+          <div class="rpoint">${job.from}<span>📍 จุดรับ</span></div>
+          <div class="rpoint">${job.to}<span>🏁 จุดส่ง</span></div>
+        </div>
+      </div>
+      <div class="job-meta">
+        <div class="job-price">฿${job.price}</div>
+        <div class="tags">
+          <div class="tag">📏 ${job.km} กม.</div>
+          ${hasWait?`<div class="tag" style="color:var(--blue);background:#eff6ff">⏳ รอ ${job.waitHrs}ชม.${job.waitMins?job.waitMins+'น.':''}</div>`:''}
+          <div class="tag">⏰ ${ts}</div>
+        </div>
+      </div>
+      ${job.note?`<div style="margin-top:9px;font-size:.76rem;color:var(--txt2);background:var(--elevated);padding:8px 10px;border-radius:8px">📝 ${job.note}</div>`:''}
+      ${isOpen
+        ?`<div class="job-card-footer"><button class="accept-btn" onclick="acceptJob(${job.id})">✅ รับงานนี้เลย!</button></div>`
+        :`<div class="job-card-footer"><div class="taken-badge">❌ ${job.takenBy===myName?'คุณรับงานนี้แล้ว':'งานถูกรับไปแล้ว'}</div></div>`}
+    </div>`;
+  }).join('');
+}
+
+function acceptJob(id){
+  const job=S.jobs.find(j=>j.id===id);
+  if(!job||job.status!=='open'){toast('⚠️ งานถูกรับไปแล้ว');return;}
+  job.status='taken';job.takenBy=S.profile.name||'ฉัน';
+  S.myJobs.unshift({...job});save();
+  toast('🎉 รับงานสำเร็จ!');
+  renderBoard();
+}
+
+// MY JOBS
+function renderMyJobs(){
+  const list=document.getElementById('myjobs-list');
+  const sub=document.getElementById('myjobs-sub');
+  const active=S.myJobs.filter(j=>j.status!=='done');
+  sub.textContent=active.length>0?`งานที่รับ ${active.length} งาน`:'ไม่มีงานที่รับ';
+  if(S.myJobs.length===0){
+    list.innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="et">ยังไม่มีงานที่รับ</div></div>`;return;
+  }
+  list.innerHTML=S.myJobs.map(job=>{
+    const isDone=job.status==='done';
+    const d=new Date(job.time);
+    const ts=d.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<div class="card" style="${isDone?'opacity:.62':''}">
+      ${!isDone?`<div class="active-banner"><div class="adot"></div><div><div style="font-weight:700;font-size:.88rem;color:var(--green)">กำลังดำเนินงาน ✅</div><div style="font-size:.73rem;color:var(--txt2);margin-top:2px">กด "ปิดงาน" เมื่อส่งถึงที่แล้ว</div></div></div>`:''}
+      <div class="job-route">
+        <div class="rdots"><div class="dot-a"></div><div class="dot-ln"></div><div class="dot-b"></div></div>
+        <div class="rtext">
+          <div class="rpoint">${job.from}<span>📍 จุดรับ</span></div>
+          <div class="rpoint">${job.to}<span>🏁 จุดส่ง</span></div>
+        </div>
+      </div>
+      <div class="job-meta" style="margin-bottom:${isDone?'0':'12px'}">
+        <div class="job-price">฿${job.price}</div>
+        <div class="tags"><div class="tag">📏 ${job.km} กม.</div><div class="tag">⏰ ${ts}</div></div>
+      </div>
+      ${!isDone
+        ?`<button class="btn btn-green" onclick="openWaitModal(${job.id})">🧾 ปิดงาน — สรุปยอด</button>`
+        :`<div class="taken-badge" style="margin-top:0;background:var(--green-bg);color:var(--green)">✅ ปิดงานแล้ว · บันทึกรายได้แล้ว</div>`}
+    </div>`;
+  }).join('');
+}
+
+// WAIT MODAL (when closing job)
+function openWaitModal(id){
+  S.activeJob=id;S.closeWaitHrs=0;S.closeWaitMins=0;
+  document.getElementById('cw-hrs').textContent='0';
+  document.getElementById('cw-mins').textContent='0';
+  document.getElementById('cw-cost').textContent='฿0';
+  document.getElementById('modal-wait').classList.add('open');
+}
+function closeWaitModal(){document.getElementById('modal-wait').classList.remove('open');}
+function changeCloseWait(d){S.closeWaitHrs=Math.max(0,S.closeWaitHrs+d);updateCWUI();}
+function changeCloseWaitMin(d){
+  S.closeWaitMins+=d;
+  if(S.closeWaitMins>=60){S.closeWaitMins-=60;S.closeWaitHrs++;}
+  if(S.closeWaitMins<0)S.closeWaitMins=0;
+  updateCWUI();
+}
+function updateCWUI(){
+  document.getElementById('cw-hrs').textContent=S.closeWaitHrs;
+  document.getElementById('cw-mins').textContent=S.closeWaitMins;
+  document.getElementById('cw-cost').textContent='฿'+calcWaitCost(S.closeWaitHrs,S.closeWaitMins);
+}
+function proceedReceipt(){
+  closeWaitModal();
+  openReceipt(S.activeJob,calcWaitCost(S.closeWaitHrs,S.closeWaitMins));
+}
+function proceedReceiptNoWait(){closeWaitModal();openReceipt(S.activeJob,0);}
+
+// RECEIPT
+function openReceipt(jobId,extraWait){
+  const job=S.myJobs.find(j=>j.id===jobId);if(!job)return;
+  S.activeJob=jobId;
+  const total=job.price+extraWait;
+  const now=new Date().toLocaleString('th-TH');
+  const hasWait=job.waitPrice>0||extraWait>0;
+  document.getElementById('receipt-body').innerHTML=`
+    <div class="rh">
+      <div class="rh-title">🐱 PikRide</div>
+      <div class="rh-sub">ใบสรุปงาน · ${now}</div>
+    </div>
+    <div class="rrow"><span class="rl">📍 รับ</span><span class="rv">${job.from}</span></div>
+    <div class="rrow"><span class="rl">🏁 ส่ง</span><span class="rv">${job.to}</span></div>
+    <div class="rrow"><span class="rl">📏 ระยะทาง</span><span class="rv">${job.km} กม.</span></div>
+    <div class="rrow"><span class="rl">🚗 ค่ารถ</span><span class="rv">฿${job.ridePrice||job.price}</span></div>
+    ${hasWait?`<div class="rrow wait-highlight"><span class="rl">⏳ ค่ารอ</span><span class="rv" style="color:var(--blue)">฿${(job.waitPrice||0)+extraWait}</span></div>`:'<div class="rrow"><span class="rl">⏳ ค่ารอ</span><span class="rv">฿0</span></div>'}
+    <div class="rtotal"><span class="rl">💵 ยอดเงินสด</span><span class="rv">฿${total}</span></div>`;
+  document.getElementById('cash-btn').onclick=()=>confirmCash(jobId,total);
+  document.getElementById('modal-receipt').classList.add('open');
+}
+function confirmCash(id,total){
+  const job=S.myJobs.find(j=>j.id===id);if(job)job.status='done';
+  S.totalIncome+=total;S.completedJobs+=1;save();
+  closeModal();
+  toast('💰 บันทึก ฿'+total+' แล้ว → PikCash');
+  renderMyJobs();updateStats();
+}
+function closeModal(){document.getElementById('modal-receipt').classList.remove('open');}
+
+// ── COPY MODAL V.1.0-F ──
+function showCopyModal(job){
+  const d=new Date(job.time);
+  const dateStr=d.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+  const driverName=S.profile.name||'ทีม PikRide';
+  const waitText=job.waitPrice>0?`\n⏳ ค่ารอ: ฿${job.waitPrice}`:'';
+  const noteText=job.note?`\n📝 หมายเหตุ: ${job.note}`:'';
+
+  const msg=`🐱 PikRide — ยืนยันการจอง
+─────────────────
+📍 รับ: ${job.from}
+🏁 ส่ง: ${job.to}
+📏 ระยะทาง: ${job.km} กม.
+💰 ราคา: ฿${job.price}${waitText}
+⏰ เวลา: ${dateStr}${noteText}
+─────────────────
+👤 คนขับ: ${driverName}
+✅ ตอบกลับ "รับทราบ" เพื่อยืนยันครับ`;
+
+  document.getElementById('copy-text').textContent=msg;
+  document.getElementById('copy-btn').textContent='📋 ก๊อปปี้ข้อความ';
+  document.getElementById('modal-copy').classList.add('open');
+  toast('✅ โยนงานเข้าบอร์ดแล้ว!');
+}
+
+function copyToClipboard(){
+  const txt=document.getElementById('copy-text').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    document.getElementById('copy-btn').textContent='✅ ก๊อปปี้แล้ว! วางใน LINE ได้เลย';
+    document.getElementById('copy-btn').style.background='var(--green)';
+  }).catch(()=>{
+    // fallback สำหรับมือถือบางรุ่น
+    const el=document.createElement('textarea');
+    el.value=txt;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    document.getElementById('copy-btn').textContent='✅ ก๊อปปี้แล้ว! วางใน LINE ได้เลย';
+  });
+}
+
+function closeCopyModal(){
+  document.getElementById('modal-copy').classList.remove('open');
+  go('board');
+}
+
+// PROFILE
+function saveProfile(){
+  const name=document.getElementById('name-in').value.trim();
+  const plate=document.getElementById('plate-in').value.trim();
+  if(!name){toast('⚠️ กรุณากรอกชื่อ');return;}
+  S.profile={name,plate};save();
+  document.getElementById('p-name').textContent=name;
+  document.getElementById('p-plate').textContent='ทะเบียนรถ: '+(plate||'—');
+  toast('✅ บันทึกแล้ว');
+}
+function updateStats(){
+  document.getElementById('s-jobs').textContent=S.completedJobs;
+  document.getElementById('s-income').textContent='฿'+S.totalIncome.toLocaleString();
+}
+
+function toast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2800);
+}
+
+function demoData(){
+  if(S.jobs.length>0)return;
+  const now=new Date();
+  S.jobs=[
+    {id:1,from:'บิ๊กซีสุพรรณบุรี',to:'โรงพยาบาลเจ้าพระยายมราช',km:8,ridePrice:80,waitPrice:0,price:80,waitHrs:0,waitMins:0,time:new Date(now.getTime()+30*60000).toISOString(),note:'ผู้โดยสาร 2 คน',status:'open',takenBy:null},
+    {id:2,from:'ตลาดสดท่าพี่เลี้ยง',to:'สนามบินสุวรรณภูมิ',km:120,ridePrice:1200,waitPrice:100,price:1300,waitHrs:1,waitMins:0,time:new Date(now.getTime()+2*3600000).toISOString(),note:'เที่ยวบินตี 5 — รอที่สนามบิน 1 ชม.',status:'open',takenBy:null},
+    {id:3,from:'หน้าเซเว่นอู่ทอง',to:'โรงเรียนอู่ทองศึกษา',km:5,ridePrice:50,waitPrice:0,price:50,waitHrs:0,waitMins:0,time:new Date(now.getTime()-3600000).toISOString(),note:'',status:'taken',takenBy:'พี่สมชาย'}
+  ];save();
+}
+
+load();demoData();recalc();renderBoard();
+
+// ── PWA INSTALL V.1.0-G ──
+let deferredPrompt=null;
+
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  // Android Chrome — แสดง banner
+  const b=document.getElementById('install-banner');
+  if(b){b.style.display='flex';}
+});
+
+function installApp(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(()=>{
+      deferredPrompt=null;
+      dismissBanner();
+      toast('✅ บันทึกลงหน้าจอแล้วครับ!');
+    });
+  }
+}
+
+function dismissBanner(){
+  const b=document.getElementById('install-banner');
+  if(b)b.style.display='none';
+}
+
+function dismissIOSBanner(){
+  const b=document.getElementById('ios-banner');
+  if(b)b.style.display='none';
+}
+
+// iOS — ตรวจสอบว่าเป็น Safari และยังไม่ได้ติดตั้ง
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandaloneMode=('standalone' in window.navigator)&&window.navigator.standalone;
+if(isIOS&&!isInStandaloneMode){
+  const b=document.getElementById('ios-banner');
+  if(b)b.style.display='block';
+}
+
+window.addEventListener('appinstalled',()=>{
+  dismissBanner();
+  toast('🎉 ติดตั้งแอปสำเร็จแล้วครับ!');
+});
+</script>
+</body>
+</html>
