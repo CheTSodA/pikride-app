@@ -365,8 +365,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Sarabun',sans-seri
     <button class="btn btn-purple" onclick="saveProfile()">💾 บันทึกข้อมูล</button>
     <div style="height:8px"></div>
     <div class="card" style="padding:13px;text-align:center;background:var(--purple-bg);border-color:#c4b5fd">
-      <div style="font-size:.76rem;color:var(--purple);font-weight:700">🐱 PikRide V.1.0-J · ฟรี 100% ตลอดชีพ</div>
-      <div style="font-size:.68rem;color:var(--txt3);margin-top:2px">✨ Google Sheet Sync แก้แล้ว · เสียงเตือน · ปุ่มรับงาน fixed</div>
+      <div style="font-size:.76rem;color:var(--purple);font-weight:700">🐱 PikRide V.1.0-K · ฟรี 100% ตลอดชีพ</div>
+      <div style="font-size:.68rem;color:var(--txt3);margin-top:2px">✨ Sheet Sync แก้แล้ว · ล้างงานเก่า · ปุ่มรับงาน fixed</div>
     </div>
     <div style="height:12px"></div>
   </div>
@@ -571,6 +571,12 @@ function createJob(){
   showCopyModal(job);
 }
 
+function clearTakenJobs(){
+  S.jobs=S.jobs.filter(j=>j.status==='open');
+  save();renderBoard();
+  toast('🗑️ ล้างงานที่รับแล้วเรียบร้อย');
+}
+
 // BOARD
 function renderBoard(){
   const list=document.getElementById('board-list');
@@ -578,13 +584,16 @@ function renderBoard(){
   const open=S.jobs.filter(j=>j.status==='open');
   sub.textContent=open.length>0?`มีงานรอ ${open.length} งาน`:'ไม่มีงานในขณะนี้';
   hideFloatBtn();
-  if(S.jobs.length===0){
+  const myName=S.profile.name||'ฉัน';
+  const openJobs=S.jobs.filter(j=>j.status==='open');
+  const takenJobs=S.jobs.filter(j=>j.status!=='open');
+  if(openJobs.length===0&&takenJobs.length===0){
     list.innerHTML=`<div class="hero"><div class="hero-icon">🐱</div><div><div class="hero-title">ยินดีต้อนรับสู่ PikRide</div><div class="hero-sub">กด ➕ สร้างงาน เพื่อโยนงานเข้าบอร์ด</div></div></div><div class="empty"><div class="ei">📋</div><div class="et">ยังไม่มีงานในบอร์ด</div></div>`;
     return;
   }
-  const myName=S.profile.name||'ฉัน';
-  list.innerHTML=`<div class="hero" style="margin-bottom:2px"><div class="hero-icon">📋</div><div><div class="hero-title">บอร์ดงาน</div><div class="hero-sub">แตะการ์ดงาน → กดรับด้านล่าง ⚡</div></div></div>`+
-  S.jobs.map(job=>{
+  const clearBtn=takenJobs.length>0?`<button onclick="clearTakenJobs()" style="width:100%;padding:10px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;font-weight:700;color:var(--txt2);cursor:pointer;margin-bottom:4px">🗑️ ล้างงานที่รับแล้ว (${takenJobs.length} งาน)</button>`:'';
+  list.innerHTML=`<div class="hero" style="margin-bottom:2px"><div class="hero-icon">📋</div><div><div class="hero-title">บอร์ดงาน</div><div class="hero-sub">แตะการ์ดงาน → กดรับด้านล่าง ⚡</div></div></div>${clearBtn}`+
+  openJobs.map(job=>{
     const d=new Date(job.time);
     const ts=d.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
     const isOpen=job.status==='open';
@@ -755,7 +764,7 @@ function openReceipt(jobId,extraWait){
   document.getElementById('modal-receipt').classList.add('open');
 }
 // ── GOOGLE SHEET SYNC ──
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwq-OBT2LFxAgclbnUKwMaWYVY0me-1hS4pgxGD00h5TjuCHgEJt-Qc_jmpQ9XRrm5N/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzDYizM3FTjSvq2f4eCD3Eh8-NFjTNzZUvc4lBuzbQiMSVdMWCoAAO-gR372BRTwbXwhw/exec';
 
 function sendToSheet(data){
   // ใช้ GET + URLSearchParams — ทำงานได้กับ no-cors
@@ -793,7 +802,7 @@ function confirmCash(id,total){
 }
 function closeModal(){document.getElementById('modal-receipt').classList.remove('open');}
 
-// ── COPY MODAL V.1.0-J ──
+// ── COPY MODAL V.1.0-F ──
 function showCopyModal(job){
   const d=new Date(job.time);
   const dateStr=d.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
@@ -865,7 +874,7 @@ function updateStats(){
   document.getElementById('s-income').textContent='฿'+S.totalIncome.toLocaleString();
 }
 
-// ── SOUND V.1.0-J ──
+// ── SOUND V.1.0-H ──
 function playNewJobSound(){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
@@ -918,7 +927,7 @@ function demoData(){
 
 load();demoData();recalc();renderBoard();
 
-// ── PWA INSTALL V.1.0-J ──
+// ── PWA INSTALL V.1.0-G ──
 let deferredPrompt=null;
 
 window.addEventListener('beforeinstallprompt',(e)=>{
