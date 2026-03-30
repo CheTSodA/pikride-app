@@ -420,14 +420,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Sarabun',sans-seri
       <div class="fgroup">
         <label class="flabel">หมวดหมู่</label>
         <select class="finput" id="cash-cat">
-          <option value="ride">🚗 ค่าโดยสาร</option>
-          <option value="fuel">⛽ ค่าน้ำมัน (ลดภาษีได้)</option>
-          <option value="repair">🔧 ค่าซ่อมรถ (ลดภาษีได้)</option>
-          <option value="insurance">🛡️ ค่าประกัน/พรบ. (ลดภาษีได้)</option>
-          <option value="solar">☀️ โซล่าเซลล์ (ลดได้ 200,000)</option>
-          <option value="rent">🏠 รายได้ค่าเช่า</option>
-          <option value="food">🍜 ค่าอาหาร (ลดภาษีไม่ได้)</option>
-          <option value="other">📦 อื่นๆ</option>
+          <optgroup label="💚 รายรับ">
+            <option value="ride_income">🚗 ค่าจ้างโดยสาร</option>
+            <option value="special_trip">⭐ ทริปพิเศษ</option>
+            <option value="other_income">📦 อื่นๆ (รายรับ)</option>
+          </optgroup>
+          <optgroup label="❤️ รายจ่าย">
+            <option value="fuel">⛽ ค่าน้ำมัน/แก๊ส</option>
+            <option value="carwash">🚿 ค่าล้างรถ</option>
+            <option value="product">🛒 ซื้อสินค้าผ่านลิงค์</option>
+            <option value="other_expense">📦 อื่นๆ (รายจ่าย)</option>
+          </optgroup>
         </select>
       </div>
       <button class="btn btn-green" onclick="addCashEntry()">💾 บันทึกรายการ</button>
@@ -457,19 +460,19 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Sarabun',sans-seri
     <!-- สรุปภาษี -->
     <div class="card" style="background:linear-gradient(135deg,var(--purple-bg),#fff);border-color:#c4b5fd">
       <div style="font-family:'Kanit',sans-serif;font-size:.9rem;font-weight:700;color:var(--purple);margin-bottom:12px">📊 สรุปรายได้เพื่อยื่นภาษี</div>
-      <div class="prow"><span class="plabel">🚗 รายได้จากขับรถ</span><span class="pval" id="tax-ride">฿0</span></div>
-      <div class="prow"><span class="plabel">🏠 รายได้ค่าเช่า</span><span class="pval" id="tax-rent">฿0</span></div>
-      <div class="prow"><span class="plabel">📦 รายได้อื่นๆ</span><span class="pval" id="tax-other-income">฿0</span></div>
+      <div class="prow"><span class="plabel">🚗 รายได้จากรถรับจ้าง</span><span class="pval" id="tax-ride">฿0</span></div>
+      <div class="prow"><span class="plabel">📦 รายได้อื่นๆ</span><span class="pval" id="tax-rent">฿0</span></div>
+      <div class="prow" style="display:none"><span class="plabel"></span><span class="pval" id="tax-other-income">฿0</span></div>
       <div class="prow total"><span class="plabel" style="font-weight:700">💰 รายได้รวม</span><span class="pval big" id="tax-total-income">฿0</span></div>
     </div>
 
     <div class="card" style="background:linear-gradient(135deg,#fff8f0,#fff);border-color:#fcd9b0">
-      <div style="font-family:'Kanit',sans-serif;font-size:.9rem;font-weight:700;color:var(--orange);margin-bottom:12px">✂️ ค่าลดหย่อน</div>
-      <div class="prow"><span class="plabel">⛽ ค่าน้ำมัน</span><span class="pval" id="tax-fuel">฿0</span></div>
-      <div class="prow"><span class="plabel">🔧 ค่าซ่อมรถ</span><span class="pval" id="tax-repair">฿0</span></div>
-      <div class="prow"><span class="plabel">🛡️ ค่าประกัน/พรบ.</span><span class="pval" id="tax-insurance">฿0</span></div>
-      <div class="prow"><span class="plabel">☀️ โซล่าเซลล์</span><span class="pval" id="tax-solar">฿0</span></div>
-      <div class="prow total"><span class="plabel" style="font-weight:700">✂️ ลดหย่อนรวม</span><span class="pval" id="tax-total-deduct" style="color:var(--orange);font-family:'Kanit',sans-serif;font-size:1.3rem;font-weight:700">฿0</span></div>
+      <div style="font-family:'Kanit',sans-serif;font-size:.9rem;font-weight:700;color:var(--orange);margin-bottom:12px">✂️ ค่าใช้จ่ายที่หักได้</div>
+      <div class="prow"><span class="plabel">⛽ ค่าน้ำมัน/แก๊ส</span><span class="pval" id="tax-fuel">฿0</span></div>
+      <div class="prow"><span class="plabel">🚿 ค่าล้างรถ</span><span class="pval" id="tax-repair">฿0</span></div>
+      <div class="prow"><span class="plabel">🛒 ซื้อสินค้าผ่านลิงค์</span><span class="pval" id="tax-insurance">฿0</span></div>
+      <div class="prow" style="display:none"><span class="plabel"></span><span class="pval" id="tax-solar">฿0</span></div>
+      <div class="prow total"><span class="plabel" style="font-weight:700">✂️ หักค่าใช้จ่ายรวม</span><span class="pval" id="tax-total-deduct" style="color:var(--orange);font-family:'Kanit',sans-serif;font-size:1.3rem;font-weight:700">฿0</span></div>
     </div>
 
     <div class="card" style="background:linear-gradient(135deg,var(--green-bg),#fff);border-color:#86efac">
@@ -716,7 +719,7 @@ function renderBoard(){
   list.innerHTML=`<div class="hero" style="margin-bottom:2px"><div class="hero-icon">📋</div><div><div class="hero-title">บอร์ดงาน</div><div class="hero-sub">แตะการ์ดงาน → กดรับด้านล่าง ⚡</div></div></div>${clearBtn}`+
   openJobs.map(job=>{
     const d=new Date(job.time);
-    const ts=d.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+    const dd=String(d.getDate()).padStart(2,'0');const mm=String(d.getMonth()+1).padStart(2,'0');const hh=String(d.getHours()).padStart(2,'0');const mn=String(d.getMinutes()).padStart(2,'0');const ts=dd+'/'+mm+' '+hh+':'+mn;
     const isOpen=job.status==='open';
     const hasWait=job.waitPrice>0;
     return `<div class="job-card ${isOpen?'new':'taken'}" ${isOpen?`onclick="selectJob(${job.id})"`:''}  id="card-${job.id}">
@@ -815,7 +818,7 @@ function renderMyJobs(){
   list.innerHTML=S.myJobs.map(job=>{
     const isDone=job.status==='done';
     const d=new Date(job.time);
-    const ts=d.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+    const dd=String(d.getDate()).padStart(2,'0');const mm=String(d.getMonth()+1).padStart(2,'0');const hh=String(d.getHours()).padStart(2,'0');const mn=String(d.getMinutes()).padStart(2,'0');const ts=dd+'/'+mm+' '+hh+':'+mn;
     return `<div class="card" style="${isDone?'opacity:.62':''}">
       ${!isDone?`<div class="active-banner"><div class="adot"></div><div><div style="font-weight:700;font-size:.88rem;color:var(--green)">กำลังดำเนินงาน ✅</div><div style="font-size:.73rem;color:var(--txt2);margin-top:2px">กด "ปิดงาน" เมื่อส่งถึงที่แล้ว</div></div></div>`:''}
       <div class="job-route">
@@ -926,7 +929,7 @@ function closeModal(){document.getElementById('modal-receipt').classList.remove(
 // ── COPY MODAL ──
 function showCopyModal(job){
   const d=new Date(job.time);
-  const dateStr=d.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+  const dd2=String(d.getDate()).padStart(2,'0');const mm2=String(d.getMonth()+1).padStart(2,'0');const yy2=String(d.getFullYear()).slice(-2);const hh2=String(d.getHours()).padStart(2,'0');const mn2=String(d.getMinutes()).padStart(2,'0');const dateStr=dd2+'/'+mm2+'/'+yy2+' '+hh2+':'+mn2;
   const driverName=S.profile.name||'ทีม PikRide';
   const waitText=job.waitPrice>0?`\n⏳ ค่ารอ: ฿${job.waitPrice}`:'';
   const noteText=job.note?`\n📝 หมายเหตุ: ${job.note}`:'';
@@ -1082,8 +1085,16 @@ function addCashEntry(){
   renderCash();renderTax();
 }
 
-const TAX_DEDUCTIBLE=['fuel','repair','insurance','solar'];
-const CAT_LABELS={ride:'🚗 ค่าโดยสาร',fuel:'⛽ ค่าน้ำมัน',repair:'🔧 ค่าซ่อมรถ',insurance:'🛡️ ประกัน/พรบ.',solar:'☀️ โซล่าเซลล์',rent:'🏠 ค่าเช่า',food:'🍜 ค่าอาหาร',other:'📦 อื่นๆ'};
+const TAX_DEDUCTIBLE=['fuel','carwash','product'];
+const CAT_LABELS={
+  ride_income:'🚗 ค่าจ้างโดยสาร',
+  special_trip:'⭐ ทริปพิเศษ',
+  other_income:'📦 อื่นๆ (รายรับ)',
+  fuel:'⛽ ค่าน้ำมัน/แก๊ส',
+  carwash:'🚿 ค่าล้างรถ',
+  product:'🛒 ซื้อสินค้าผ่านลิงค์',
+  other_expense:'📦 อื่นๆ (รายจ่าย)'
+};
 
 function renderCash(){
   if(!S.cashEntries)S.cashEntries=[];
@@ -1118,15 +1129,13 @@ function renderCash(){
 
 function renderTax(){
   if(!S.cashEntries)S.cashEntries=[];
-  const rideIncome=S.cashEntries.filter(e=>e.type==='income'&&e.cat==='ride').reduce((s,e)=>s+e.amount,0)+S.totalIncome;
-  const rentIncome=S.cashEntries.filter(e=>e.type==='income'&&e.cat==='rent').reduce((s,e)=>s+e.amount,0);
-  const otherIncome=S.cashEntries.filter(e=>e.type==='income'&&!['ride','rent'].includes(e.cat)).reduce((s,e)=>s+e.amount,0);
-  const totalIncome=rideIncome+rentIncome+otherIncome;
+  const rideIncome=S.cashEntries.filter(e=>e.type==='income'&&['ride_income','special_trip'].includes(e.cat)).reduce((s,e)=>s+e.amount,0)+S.totalIncome;
+  const otherIncome=S.cashEntries.filter(e=>e.type==='income'&&e.cat==='other_income').reduce((s,e)=>s+e.amount,0);
+  const totalIncome=rideIncome+otherIncome;
   const fuel=S.cashEntries.filter(e=>e.type==='expense'&&e.cat==='fuel').reduce((s,e)=>s+e.amount,0);
-  const repair=S.cashEntries.filter(e=>e.type==='expense'&&e.cat==='repair').reduce((s,e)=>s+e.amount,0);
-  const insurance=S.cashEntries.filter(e=>e.type==='expense'&&e.cat==='insurance').reduce((s,e)=>s+e.amount,0);
-  const solar=Math.min(S.cashEntries.filter(e=>e.type==='expense'&&e.cat==='solar').reduce((s,e)=>s+e.amount,0),200000);
-  const totalDeduct=fuel+repair+insurance+solar;
+  const carwash=S.cashEntries.filter(e=>e.type==='expense'&&e.cat==='carwash').reduce((s,e)=>s+e.amount,0);
+  const product=S.cashEntries.filter(e=>e.type==='expense'&&e.cat==='product').reduce((s,e)=>s+e.amount,0);
+  const totalDeduct=fuel+carwash+product;
   const netIncome=Math.max(0,totalIncome-totalDeduct-60000);
   // คำนวณภาษีแบบขั้นบันได
   let tax=0;
@@ -1139,13 +1148,13 @@ function renderTax(){
   else if(netIncome>150000)tax=(netIncome-150000)*0.05;
 
   document.getElementById('tax-ride').textContent='฿'+rideIncome.toLocaleString();
-  document.getElementById('tax-rent').textContent='฿'+rentIncome.toLocaleString();
+  document.getElementById('tax-rent').textContent='฿'+otherIncome.toLocaleString();
   document.getElementById('tax-other-income').textContent='฿'+otherIncome.toLocaleString();
   document.getElementById('tax-total-income').textContent='฿'+totalIncome.toLocaleString();
   document.getElementById('tax-fuel').textContent='฿'+fuel.toLocaleString();
-  document.getElementById('tax-repair').textContent='฿'+repair.toLocaleString();
-  document.getElementById('tax-insurance').textContent='฿'+insurance.toLocaleString();
-  document.getElementById('tax-solar').textContent='฿'+solar.toLocaleString();
+  document.getElementById('tax-repair').textContent='฿'+carwash.toLocaleString();
+  document.getElementById('tax-insurance').textContent='฿'+product.toLocaleString();
+  document.getElementById('tax-solar').textContent='฿0';
   document.getElementById('tax-total-deduct').textContent='฿'+totalDeduct.toLocaleString();
   document.getElementById('tax-net').textContent='฿'+netIncome.toLocaleString();
   document.getElementById('tax-due').textContent='฿'+Math.round(tax).toLocaleString();
